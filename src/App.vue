@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
+import { getLoginUserUsingGet } from '@/api/userController'
+import { definedUser } from '@/stores/user'
 
+const user = definedUser();
 const activeIndex = ref('1')
+const router = useRouter()
 const handleSelect = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
 }
@@ -11,10 +15,24 @@ const search = () => {
   console.log(searchInput.value)
 }
 const searchInput = ref('')
-const isLogin = ref(true)
 const circleUrl = ref(
   'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
 )
+const login = () => {
+  router.push({ path: '/login' })
+}
+
+onMounted(async ()=>{
+  try{
+    const res = await getLoginUserUsingGet();
+    if(res.data){
+      data = res.data
+      user.setUser(data)
+    }
+  } catch(error){
+    user.setDefault()
+  }
+})
 </script>
 
 <template>
@@ -38,10 +56,10 @@ const circleUrl = ref(
               >我的博客</span
             >
           </div>
-          <el-menu-item index="0">主页</el-menu-item>
-          <el-menu-item index="1">帖子</el-menu-item>
-          <el-menu-item index="2">碎碎念</el-menu-item>
-          <el-sub-menu index="3">
+          <el-menu-item index="/home" router="true">主页</el-menu-item>
+          <el-menu-item index="/post" router="true">帖子</el-menu-item>
+          <el-menu-item index="2" class="HeaderLeft">碎碎念</el-menu-item>
+          <el-sub-menu index="3" class="HeaderLeft" v-if="false">
             <template #title>Workspace</template>
             <el-menu-item index="3-1">item one</el-menu-item>
             <el-menu-item index="3-2">item two</el-menu-item>
@@ -56,7 +74,7 @@ const circleUrl = ref(
           <div class="HeadComponentWithoutHover">
             <el-input
               v-model="searchInput"
-              style="width: 400px; height: 70%"
+              style="width: 300px; height: 70%"
               placeholder="请输入搜索的内容"
             >
               <template #append>
@@ -64,17 +82,23 @@ const circleUrl = ref(
               </template>
             </el-input>
           </div>
-          <div v-if="!isLogin" @click="search" class="HeadComponent">
+          <div
+            v-if="!user.loginStatus"
+            @click="login"
+            class="HeadComponent"
+          >
             <el-avatar :size="30" :src="circleUrl" />
-            <span style="margin-left: 5px; font-size: 13px; color: #cdcdcd"
+            <span
+              style="margin-left: 5px; font-size: 13px; color: #cdcdcd"
+
               >未登录</span
             >
           </div>
-          <el-sub-menu index="4" v-if="isLogin" class="HeaderRight">
+          <el-sub-menu index="4" v-if="user.loginStatus" class="HeaderRight">
             <template #title
-              ><el-avatar :size="30" :src="circleUrl" />
+              ><el-avatar :size="30" :src="user.userAvatar" />
               <span style="margin-left: 5px; font-size: 13px; color: #cdcdcd"
-                >username</span
+                >{{ user.userName }}</span
               ></template
             >
             <el-menu-item index="4-1">个人中心</el-menu-item>
@@ -86,13 +110,21 @@ const circleUrl = ref(
       <el-main class="main">
         <RouterView />
       </el-main>
-      <el-footer class="footer">Footer</el-footer>
+      <el-footer class="footer">
+        copyright © Golfar
+      </el-footer>
     </el-container>
+
   </div>
 </template>
 
 <style scoped>
-.el-menu--horizontal > .el-menu-item:nth-child(4) {
+.common-layout{
+    max-width: 1200px;
+    margin: 0 auto;
+
+}
+.HeaderLeft {
   margin-right: auto;
 }
 .HeadComponent:hover {
@@ -111,5 +143,12 @@ const circleUrl = ref(
   margin-left: 20px;
   justify-content: center;
   align-items: center;
+}
+.footer{
+  color: #cdcdcd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
 }
 </style>

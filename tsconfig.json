@@ -7,5 +7,19 @@
     {
       "path": "./tsconfig.app.json"
     }
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6"
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    },
+    "transpileOnly": true,
+    "files": true
+  },
+  "include": [
+    "**/*.ts"
   ]
 }
